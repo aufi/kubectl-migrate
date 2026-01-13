@@ -4,9 +4,9 @@ This directory contains sample Kubernetes applications for testing and developin
 
 ## Available Applications
 
-| Application | Type | Default Namespace | Description |
-|------------|------|-------------------|-------------|
-| hello-world | Stateless | hello-world | Apache HTTPD web server with static "Hello World" page |
+| Application | Type | Description |
+|------------|------|-------------|
+| hello-world | Stateless | Apache HTTPD web server with static "Hello World" page |
 
 ## Prerequisites
 

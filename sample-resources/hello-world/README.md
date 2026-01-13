@@ -48,7 +48,7 @@ Or manually:
 kubectl create -f manifest.yaml
 ```
 
-This will create both the deployment and the service in your current namespace.
+This will create both the deployment and the service in your currently selected namespace. The manifest does not specify a target namespace, so resources will be deployed to whichever namespace is active in your current kubectl context.
 
 ### Verifying Deployment
 
