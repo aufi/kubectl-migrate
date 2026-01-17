@@ -1,0 +1,52 @@
+# CodeRabbit AI Configuration
+# Documentation: https://docs.coderabbit.ai/configuration
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-US"
+
+# Review settings
+reviews:
+  profile: "chill"  # "chill" or "assertive"
+  high_level_summary: true
+  review_status: true
+  review_details: true
+  commit_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  
+  # Custom instructions for this Kubernetes migration tool
+  instructions: |
+    This is a Kubernetes migration tool. Focus on Kubernetes best practices and Go idioms.
+    Pay special attention to error handling and resource cleanup.
+    Ensure all Kubernetes API calls are properly authenticated and authorized.
+  
+  # Path filters - use ! prefix to exclude paths
+  path_filters:
+    - "!**/vendor/**"
+    - "!**/node_modules/**"
+    - "!**/.git/**"
+    - "!**/dist/**"
+    - "!**/build/**"
+  
+  # Auto review settings
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+  
+  # Finishing touches
+  finishing_touches:
+    docstrings:
+      enabled: true
+    unit_tests:
+      enabled: true
+
+# Chat settings
+chat:
+  auto_reply: true
+
+# Knowledge base
+knowledge_base:
+  opt_out: false
+  pull_requests:
+    scope: "auto"
