@@ -88,8 +88,12 @@ fi
 # Start minikube cluster
 echo -e "${GREEN}Starting minikube cluster...${NC}"
 
-# Use kvm2 driver for Linux
-DRIVER="kvm2"
+# Select driver based on OS
+if [[ "$OS" == "linux" ]]; then
+    DRIVER="kvm2"
+elif [[ "$OS" == "darwin" ]]; then
+    DRIVER="docker"  # or hyperkit if available
+fi
 echo -e "${YELLOW}Using driver: $DRIVER${NC}"
 
 # Check if libvirt is installed (required for kvm2)
