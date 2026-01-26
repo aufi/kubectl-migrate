@@ -16,7 +16,7 @@ func TestGetYamlFromUrlWithUrl(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 	index := PluginIndex{
-		Kind: "PluginIndex",
+		Kind:       "PluginIndex",
 		ApiVersion: "crane.konveyor.io/v1alpha1",
 		Plugins: []PluginLocation{
 			{
@@ -72,7 +72,7 @@ func TestYamlToManifestWithUrl(t *testing.T) {
 
 func TestGetYamlFromUrlWithFile(t *testing.T) {
 	index := PluginIndex{
-		Kind: "PluginIndex",
+		Kind:       "PluginIndex",
 		ApiVersion: "crane.konveyor.io/v1alpha1",
 		Plugins: []PluginLocation{
 			{

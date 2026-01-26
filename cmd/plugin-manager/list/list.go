@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 
-	transform2 "github.com/konveyor/crane-lib/transform"
 	"github.com/konveyor-ecosystem/kubectl-migrate/internal/flags"
 	"github.com/konveyor-ecosystem/kubectl-migrate/internal/plugin"
+	transform2 "github.com/konveyor/crane-lib/transform"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -163,7 +163,7 @@ func (o *Options) run() error {
 	return nil
 }
 
-//TODO: this can be merged with printParamsInformation
+// TODO: this can be merged with printParamsInformation
 func printInstalledInformation(plugins []transform2.Plugin) {
 	for _, thisPlugin := range plugins {
 		printTable([][]string{

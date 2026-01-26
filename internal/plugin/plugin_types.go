@@ -3,9 +3,9 @@ package plugin
 import "github.com/konveyor/crane-lib/transform"
 
 type Plugin struct {
-	Kind       string   `json:"kind"`
-	ApiVersion string   `json:"apiVersion"`
-	Versions []PluginVersion `json:"versions"`
+	Kind       string          `json:"kind"`
+	ApiVersion string          `json:"apiVersion"`
+	Versions   []PluginVersion `json:"versions"`
 }
 
 type PluginVersion struct {
@@ -32,7 +32,7 @@ type PluginLocation struct {
 }
 
 type PluginIndex struct {
-	Kind       string   `json:"kind"`
-	ApiVersion string   `json:"apiVersion"`
+	Kind       string           `json:"kind"`
+	ApiVersion string           `json:"apiVersion"`
 	Plugins    []PluginLocation `json:"plugins"`
 }

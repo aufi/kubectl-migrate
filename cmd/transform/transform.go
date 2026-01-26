@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/konveyor/crane-lib/transform"
 	"github.com/konveyor-ecosystem/kubectl-migrate/cmd/transform/listplugins"
 	"github.com/konveyor-ecosystem/kubectl-migrate/cmd/transform/optionals"
 	"github.com/konveyor-ecosystem/kubectl-migrate/internal/file"
 	"github.com/konveyor-ecosystem/kubectl-migrate/internal/flags"
 	"github.com/konveyor-ecosystem/kubectl-migrate/internal/plugin"
+	"github.com/konveyor/crane-lib/transform"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
