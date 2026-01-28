@@ -430,14 +430,18 @@ func (t *TransferPVCCommand) run() error {
 		log.Fatal(err, "error creating rsync transfer server")
 	}
 
-	_ = wait.PollUntil(time.Second*5, func() (done bool, err error) {
-		ready, err := rsyncServer.IsHealthy(context.TODO(), destClient)
+	// Create a context with timeout to prevent indefinite hanging
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	_ = wait.PollUntilContextCancel(ctx, time.Second*5, true, func(ctx context.Context) (done bool, err error) {
+		ready, err := rsyncServer.IsHealthy(ctx, destClient)
 		if err != nil {
 			log.Println(err, "unable to check rsync server health, retrying...")
 			return false, nil
 		}
 		return ready, nil
-	}, make(<-chan struct{}))
+	})
 
 	nodeName, err := getNodeNameForPVC(srcClient, srcPVC.Namespace, srcPVC.Name)
 	if err != nil {
