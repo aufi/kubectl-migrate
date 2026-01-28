@@ -3,10 +3,11 @@ package transfer_pvc
 import (
 	"context"
 	"crypto/md5"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"log"
-	random "math/rand"
+	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -523,13 +524,23 @@ func getNodeNameForPVC(srcClient client.Client, namespace string, pvcName string
 	return "", fmt.Errorf("PVC %s in namespace %s is not mounted on any running pod", pvcName, namespace)
 }
 
-// getRsyncPassword returns a random password for rsync
+// getRsyncPassword returns a cryptographically secure random password for rsync
 func getRsyncPassword() string {
-	var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	random.Seed(time.Now().UnixNano())
-	password := make([]byte, 6)
+	// Use a strong alphabet including letters, digits, and safe symbols
+	const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?"
+	const passwordLength = 16
+
+	password := make([]byte, passwordLength)
+	alphabetLen := big.NewInt(int64(len(alphabet)))
+
 	for i := range password {
-		password[i] = letters[random.Intn(len(letters))]
+		// Use crypto/rand.Int to avoid modulo bias
+		randomIndex, err := rand.Int(rand.Reader, alphabetLen)
+		if err != nil {
+			// If we can't get secure random bytes, this is a critical error
+			log.Fatal(err, "failed to generate secure random password")
+		}
+		password[i] = alphabet[randomIndex.Int64()]
 	}
 	return string(password)
 }
