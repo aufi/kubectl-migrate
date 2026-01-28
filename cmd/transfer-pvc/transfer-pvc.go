@@ -690,7 +690,6 @@ func followClientLogs(srcConfig *rest.Config, pvc types.NamespacedName, labels m
 	}
 	defer logReader.Close()
 	stdout, stderr, errChan := logReader.Streams()
-	var err error
 	for {
 		closed := false
 		select {
@@ -709,6 +708,7 @@ func followClientLogs(srcConfig *rest.Config, pvc types.NamespacedName, labels m
 		case e, ok := <-errChan:
 			if !ok {
 				errChan = nil
+				closed = true
 			} else {
 				if e != io.EOF {
 					err = e
