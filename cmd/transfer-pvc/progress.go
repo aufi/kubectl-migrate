@@ -39,15 +39,15 @@ type rsyncLogStream struct {
 }
 
 func NewRsyncLogStream(restCfg *rest.Config, pvc types.NamespacedName, labels map[string]string, output string) LogStreams {
-	var outputFile string
+	var outputFile *string
 	if output != "" {
-		outputFile = output
+		outputFile = &output
 	}
 	return &rsyncLogStream{
 		restCfg:    restCfg,
 		pvc:        pvc,
 		podLabels:  labels,
-		outputFile: &outputFile,
+		outputFile: outputFile,
 	}
 }
 
