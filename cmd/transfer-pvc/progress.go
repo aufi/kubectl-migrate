@@ -73,7 +73,7 @@ func (r *rsyncLogStream) Init() error {
 		Follow:    true,
 	})
 
-	podLogStream, err := podLogsRequest.Stream(context.TODO())
+	podLogStream, err := podLogsRequest.Stream(r.ctx)
 	if err != nil {
 		return err
 	}
