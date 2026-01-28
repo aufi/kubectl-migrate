@@ -445,7 +445,7 @@ func (t *TransferPVCCommand) run() error {
 
 	nodeName, err := getNodeNameForPVC(srcClient, srcPVC.Namespace, srcPVC.Name)
 	if err != nil {
-		log.Fatal(err, "failed to find node name")
+		log.Fatal(err, "failed to find node name - the PVC must be mounted by a running pod for transfer to work. Please ensure a pod is using this PVC and is in Running state")
 	}
 
 	clientPodSecCtx, err := getRsyncClientPodSecurityContext(srcClient, srcPVC.Namespace)
@@ -520,7 +520,7 @@ func getNodeNameForPVC(srcClient client.Client, namespace string, pvcName string
 			}
 		}
 	}
-	return "", nil
+	return "", fmt.Errorf("PVC %s in namespace %s is not mounted on any running pod", pvcName, namespace)
 }
 
 // getRsyncPassword returns a random password for rsync
