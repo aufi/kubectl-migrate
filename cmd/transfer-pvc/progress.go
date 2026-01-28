@@ -568,6 +568,8 @@ func getFinalPodStatus(c *kubernetes.Clientset, name string, namespace string) (
 		if count > 5 || exitCode != nil {
 			break
 		}
+		// Add delay between API calls to avoid hammering the server
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	lastLines := int64(35)
