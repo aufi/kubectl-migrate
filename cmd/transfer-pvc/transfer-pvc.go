@@ -386,6 +386,7 @@ func (t *TransferPVCCommand) run() error {
 			Namespace: srcPVC.Namespace,
 		}, e.Hostname(), e.IngressPort(), &transport.Options{
 			Labels: labels,
+			// Coderabbit suggest SourceImage, keep it for later once we know this better
 			Image:  t.Flags.DestinationImage,
 		},
 	)
