@@ -70,21 +70,70 @@ if command -v podman &> /dev/null; then
     echo -e "${YELLOW}Detected Podman${NC}"
     CONTAINER_RUNTIME="podman"
 
-    # Check if podman is running
-    if ! podman info &> /dev/null; then
-        echo -e "${RED}Error: Podman is installed but not working correctly${NC}"
-        exit 1
+    # Platform-specific podman setup
+    if [[ "$OS" == "darwin" ]]; then
+        # macOS - use podman machine
+        echo -e "${YELLOW}Setting up Podman for macOS...${NC}"
+        
+        # Find running podman machine using structured output
+        RUNNING_MACHINE=$(podman machine list --format '{{.Name}} {{.Running}}' 2>/dev/null | grep ' true$' | awk '{print $1}' | sed 's/\*$//' | head -n1)
+        
+        if [[ -z "$RUNNING_MACHINE" ]]; then
+            echo -e "${YELLOW}No running podman machine detected${NC}"
+            
+            # Get the first available machine name (default or first in list)
+            MACHINE_NAME=$(podman machine list --format '{{.Name}}' 2>/dev/null | sed 's/\*$//' | head -n1)
+            
+            if [[ -n "$MACHINE_NAME" ]]; then
+                echo -e "${YELLOW}Starting existing podman machine: $MACHINE_NAME${NC}"
+                podman machine start "$MACHINE_NAME"
+                RUNNING_MACHINE="$MACHINE_NAME"
+            else
+                echo -e "${YELLOW}Initializing new podman machine...${NC}"
+                podman machine init
+                MACHINE_NAME=$(podman machine list --format '{{.Name}}' 2>/dev/null | sed 's/\*$//' | head -n1)
+                podman machine start "$MACHINE_NAME"
+                RUNNING_MACHINE="$MACHINE_NAME"
+            fi
+        else
+            echo -e "${GREEN}Found running podman machine: $RUNNING_MACHINE${NC}"
+        fi
+        
+        # Get the socket path from the specific running machine
+        if [[ -n "$RUNNING_MACHINE" ]]; then
+            PODMAN_SOCK=$(podman machine inspect "$RUNNING_MACHINE" --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null)
+            
+            if [[ -n "$PODMAN_SOCK" ]] && [[ -S "$PODMAN_SOCK" ]]; then
+                export DOCKER_HOST="unix://$PODMAN_SOCK"
+                echo -e "${GREEN}Using Podman socket from $RUNNING_MACHINE: $DOCKER_HOST${NC}"
+            else
+                echo -e "${YELLOW}Warning: Could not get socket path from machine, podman may still work via default connection${NC}"
+            fi
+        fi
+        
+        # Verify podman is working (after starting machine)
+        if ! podman info &> /dev/null; then
+            echo -e "${RED}Error: Podman machine started but not working correctly${NC}"
+            exit 1
+        fi
+        
+    elif [[ "$OS" == "linux" ]]; then
+        # Linux - verify podman is working first
+        if ! podman info &> /dev/null; then
+            echo -e "${RED}Error: Podman is installed but not working correctly${NC}"
+            exit 1
+        fi
+        
+        # Set up systemd socket
+        if ! systemctl --user is-active --quiet podman.socket; then
+            echo -e "${YELLOW}Starting podman socket for kind...${NC}"
+            systemctl --user start podman.socket
+            systemctl --user enable podman.socket
+        fi
+        
+        export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
+        echo -e "${GREEN}Using Podman socket: $DOCKER_HOST${NC}"
     fi
-
-    # Set up podman socket for kind if not already running
-    if ! systemctl --user is-active --quiet podman.socket; then
-        echo -e "${YELLOW}Starting podman socket for kind...${NC}"
-        systemctl --user start podman.socket
-        systemctl --user enable podman.socket
-    fi
-
-    # Export DOCKER_HOST to use podman socket
-    export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
 
     # Create docker symlink if it doesn't exist (some tools expect 'docker' command)
     if ! command -v docker &> /dev/null; then
@@ -99,15 +148,28 @@ elif command -v docker &> /dev/null; then
     # Check if docker is running
     if ! docker info &> /dev/null; then
         echo -e "${RED}Error: Docker is installed but not running${NC}"
-        echo -e "${YELLOW}Please start Docker and try again${NC}"
+        
+        if [[ "$OS" == "darwin" ]]; then
+            echo -e "${YELLOW}Please start Docker Desktop and try again${NC}"
+        else
+            echo -e "${YELLOW}Please start Docker daemon and try again${NC}"
+        fi
         exit 1
     fi
 else
     echo -e "${RED}Error: Neither Podman nor Docker is installed${NC}"
     echo -e "${YELLOW}kind requires either Podman or Docker to run${NC}"
     echo ""
-    echo -e "For Fedora Linux, install Podman with:"
-    echo -e "  ${GREEN}sudo dnf install -y podman${NC}"
+    
+    if [[ "$OS" == "darwin" ]]; then
+        echo -e "For macOS, install one of:"
+        echo -e "  ${GREEN}Docker Desktop: https://docs.docker.com/desktop/install/mac-install/${NC}"
+        echo -e "  ${GREEN}Podman: brew install podman${NC}"
+    elif [[ "$OS" == "linux" ]]; then
+        echo -e "For Linux, install Podman with:"
+        echo -e "  ${GREEN}sudo dnf install -y podman${NC} (Fedora/RHEL)"
+        echo -e "  ${GREEN}sudo apt install -y podman${NC} (Ubuntu/Debian)"
+    fi
     echo ""
     echo -e "Or install Docker from: https://docs.docker.com/get-docker/"
     exit 1

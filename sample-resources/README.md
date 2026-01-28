@@ -7,6 +7,7 @@ This directory contains sample Kubernetes applications for testing and developin
 | Application | Type | Description |
 |------------|------|-------------|
 | hello-world | Stateless | Apache HTTPD web server with static "Hello World" page |
+| wordpress | Stateful | Multi-tier WordPress application with MySQL database and persistent storage |
 
 ## Prerequisites
 
