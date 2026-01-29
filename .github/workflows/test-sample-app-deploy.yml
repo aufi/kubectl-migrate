@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/deploy-sample-app
         id: deploy-wordpress
         with:
-          app-name: wordpress
+          app-name: ../wordpress
           verify-health: 'true' #Optional - Triggers validate.sh script
 
       # Add any additional steps here - app is still running
@@ -46,4 +46,4 @@ jobs:
         if: always()
         uses: ./.github/actions/destroy-sample-app
         with:
-          app-name: wordpress
+          app-name: ../wordpress
