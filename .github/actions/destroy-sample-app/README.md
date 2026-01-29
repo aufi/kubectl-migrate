@@ -70,7 +70,7 @@ steps:
 
 The action looks for app-specific destroy scripts:
 
-```
+```text
 sample-resources/
 ├── hello-world/
 │   └── destroy.sh       ← Uses this if it exists

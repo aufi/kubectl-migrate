@@ -66,7 +66,7 @@ steps:
 
 When `verify-health: 'true'` is set, the action looks for a `validate.sh` script in the app directory:
 
-```
+```text
 sample-resources/
 ├── hello-world/
 │   ├── deploy.sh

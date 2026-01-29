@@ -57,15 +57,7 @@ runs:
       shell: bash
       run: |
         echo "🔍 Verifying deployment health for ${{ inputs.app-name }}..."
-        
-        if [ -f "sample-resources/${{ inputs.app-name }}/validate.sh" ]; then
-          echo "Running validate.sh for ${{ inputs.app-name }}..."
-          (cd "sample-resources/${{ inputs.app-name }}" && ./validate.sh)
-          echo "✅ Validation completed"
-        else
-          echo "⚠️  No validate.sh found for ${{ inputs.app-name }}"
-          echo "Skipping health verification"
-        fi
+        make resources-validate ${{ inputs.app-name }}
 
     - name: Show deployment status
       if: always()

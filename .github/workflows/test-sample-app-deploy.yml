@@ -1,9 +1,7 @@
 name: Test Sample App Deploy
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
     paths:
       - '.github/workflows/test-sample-app-deploy.yml'
       - '.github/actions/deploy-sample-app/**'
