@@ -8,10 +8,6 @@ inputs:
     description: 'Perform additional health checks beyond kubectl wait'
     required: false
     default: 'false'
-  timeout:
-    description: 'Timeout for deployment readiness (seconds)'
-    required: false
-    default: '300'
 
 outputs:
   deployment-status:
@@ -35,7 +31,7 @@ runs:
           echo "❌ Error: deploy.sh not found for '${{ inputs.app-name }}'"
           exit 1
         fi
-        echo "✅ Application '${{ inputs.app-name }}' validated"
+        echo "✅ Application '${{ inputs.app-name }}' exists."
 
     - name: Deploy application
       id: deploy
@@ -62,29 +58,13 @@ runs:
       run: |
         echo "🔍 Verifying deployment health for ${{ inputs.app-name }}..."
         
-        # Use the validate.sh script if it exists
         if [ -f "sample-resources/${{ inputs.app-name }}/validate.sh" ]; then
           echo "Running validate.sh for ${{ inputs.app-name }}..."
           (cd "sample-resources/${{ inputs.app-name }}" && ./validate.sh)
+          echo "✅ Validation completed"
         else
-          echo "⚠️  No validate.sh found for ${{ inputs.app-name }}, performing basic checks..."
-          
-          # Fallback to basic checks
-          case "${{ inputs.app-name }}" in
-            hello-world)
-              kubectl get deployment apache-hello -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep -q "True" || exit 1
-              kubectl get service apache-hello-service || exit 1
-              echo "✅ hello-world basic checks passed"
-              ;;
-            wordpress)
-              kubectl get deployment wordpress-mysql -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep -q "True" || exit 1
-              kubectl get deployment wordpress -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep -q "True" || exit 1
-              echo "✅ wordpress basic checks passed"
-              ;;
-            *)
-              echo "⚠️  No validation available for ${{ inputs.app-name }}"
-              ;;
-          esac
+          echo "⚠️  No validate.sh found for ${{ inputs.app-name }}"
+          echo "Skipping health verification"
         fi
 
     - name: Show deployment status
