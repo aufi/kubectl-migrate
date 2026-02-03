@@ -1,0 +1,165 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'test/e2e/**'
+      - '.github/workflows/e2e-tests.yml'
+      - 'Makefile'
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  e2e-export:
+    name: E2E - Export Command
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Create Kind Cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: e2e-test
+          wait: 30s
+
+      - name: Verify cluster
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl version
+
+      - name: Build binary
+        run: make build
+
+      - name: Verify binary
+        run: |
+          ./bin/kubectl-migrate version
+          ./bin/kubectl-migrate --help
+
+      - name: Run export E2E tests
+        run: make test-e2e-export
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-export-results
+          path: |
+            /tmp/e2e-*
+          retention-days: 7
+
+  e2e-full:
+    name: E2E - Full Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Create Kind Cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: e2e-test
+          wait: 30s
+
+      - name: Verify cluster
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Deploy sample resources
+        run: make resources-deploy
+
+      - name: Validate sample resources
+        run: make resources-validate
+
+      - name: Build binary
+        run: make build
+
+      - name: Run all E2E tests
+        run: make test-e2e
+
+      - name: Cleanup
+        if: always()
+        run: make resources-destroy || true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-full-results
+          path: |
+            /tmp/e2e-*
+          retention-days: 7
+
+  e2e-quick:
+    name: E2E - Quick Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Create Kind Cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: e2e-quick
+          wait: 30s
+
+      - name: Build binary
+        run: make build
+
+      - name: Run quick E2E tests
+        run: make test-e2e-quick
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Run unit tests
+        run: make test-unit
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage.*
+          retention-days: 7

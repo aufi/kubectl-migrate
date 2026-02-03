@@ -27,7 +27,7 @@ LDFLAGS = -ldflags "\
 # Platforms for cross-compilation
 PLATFORMS = linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 
-.PHONY: all build build-all clean test-unit deps install check fmt vet lint resources-deploy resources-destroy resources-validate help
+.PHONY: all build build-all clean test-unit test-e2e test-e2e-quick test-e2e-export deps install check fmt vet lint resources-deploy resources-destroy resources-validate help
 
 all: build
 
@@ -66,8 +66,21 @@ clean: ## Remove built binaries
 	@echo "Clean complete!"
 
 test-unit: ## Run golang unit tests
-	@echo "Running tests..."
-	$(GOTEST) -v ./...
+	@echo "Running unit tests..."
+	$(GOTEST) -v ./cmd/... ./internal/...
+
+test-e2e: build ## Run E2E tests (requires running cluster)
+	@echo "Running E2E tests..."
+	@echo "Using binary: $(BUILD_DIR)/$(BINARY_NAME)"
+	@E2E_BINARY=$(BUILD_DIR)/$(BINARY_NAME) $(GOTEST) -v -timeout 30m ./test/e2e/...
+
+test-e2e-quick: build ## Run E2E tests in short mode
+	@echo "Running quick E2E tests..."
+	@E2E_BINARY=$(BUILD_DIR)/$(BINARY_NAME) $(GOTEST) -v -timeout 10m -short ./test/e2e/...
+
+test-e2e-export: build ## Run only export E2E tests
+	@echo "Running export E2E tests..."
+	@E2E_BINARY=$(BUILD_DIR)/$(BINARY_NAME) $(GOTEST) -v -timeout 15m ./test/e2e/export_test.go ./test/e2e/framework/*.go
 
 deps: ## Download dependencies
 	@echo "Downloading dependencies..."
@@ -95,6 +108,9 @@ lint: ## Run golangci-lint (requires golangci-lint to be installed)
 
 check: fmt vet test-unit ## Run fmt, vet, and test-unit
 	@echo "All checks passed!"
+
+test-all: test-unit test-e2e ## Run all tests (unit + E2E)
+	@echo "All tests passed!"
 
 ###############################################################################
 
